@@ -47,14 +47,20 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'RoxyBrowser Manager ${{ github.ref_name }}'
           releaseBody: |
-            ## 更新日志
+            ## 🚀 RoxyBrowser Manager ${{ github.ref_name }}
             
-            请查看 commit 历史了解详细更改。
+            ### 📥 下载说明
             
-            ## 下载说明
+            | 平台 | 文件 | 说明 |
+            |------|------|------|
+            | **macOS (Apple Silicon)** | `.dmg` | 适用于 M1/M2/M3 芯片的 Mac |
+            | **Windows** | `.exe` | Windows 安装程序 |
             
-            - **macOS (Apple Silicon/M芯片)**: 下载 `.dmg` 文件
-            - **Windows**: 下载 `.msi` 或 `.exe` 安装程序
+            ### ⚠️ 安装说明
+            
+            **macOS**: 如果遇到"无法打开"的提示，请在系统偏好设置 > 安全性与隐私 中允许运行。
+            
+            **Windows**: 如果遇到 SmartScreen 警告，请选择"仍要运行"。
           releaseDraft: false
           prerelease: false
           tauriScript: npm run tauri
@@ -86,22 +92,24 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Build frontend
+        run: npm run build
+
       - name: Build Tauri App for Windows
-        uses: tauri-apps/tauri-action@v0
+        run: npm run tauri build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List build outputs
+        run: |
+          echo "Checking build outputs..."
+          dir src-tauri\target\release\bundle\ -Recurse
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'RoxyBrowser Manager ${{ github.ref_name }}'
-          releaseBody: |
-            ## 更新日志
-            
-            请查看 commit 历史了解详细更改。
-            
-            ## 下载说明
-            
-            - **macOS (Apple Silicon/M芯片)**: 下载 `.dmg` 文件
-            - **Windows**: 下载 `.msi` 或 `.exe` 安装程序
-          releaseDraft: false
-          prerelease: false
-          tauriScript: npm run tauri
+          tag_name: ${{ github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/nsis/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
