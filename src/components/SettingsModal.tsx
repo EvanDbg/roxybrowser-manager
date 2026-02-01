@@ -185,7 +185,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button
                         className="btn btn-ghost gap-2"
                         onClick={handleClear}
-                        disabled={isLoading || !currentPath}
+                        disabled={isLoading || !currentPath.trim()}
                     >
                         <Trash2 className="w-4 h-4" />
                         清除
@@ -223,7 +223,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button
                         className="btn btn-primary"
                         onClick={handleSave}
-                        disabled={isLoading || (currentPath && !isValid)}
+                        disabled={isLoading || (!!currentPath && !isValid)}
                     >
                         {isLoading ? (
                             <>
