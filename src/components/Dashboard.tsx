@@ -1,7 +1,8 @@
-import { User, Play, Square, RefreshCw, Plus, Download, Upload, Settings, Sun, Moon, X } from "lucide-react";
+import { User, Play, Square, RefreshCw, Plus, Download, Upload, Settings, Sun, Moon, X, FolderOpen } from "lucide-react";
 import { useStore } from "../stores/useStore";
 import UserCard from "./UserCard";
 import AddUserWizard from "./AddUserWizard";
+import SettingsModal from "./SettingsModal";
 import { useEffect, useState, useRef } from "react";
 
 export default function Dashboard() {
@@ -18,6 +19,9 @@ export default function Dashboard() {
         wizardOpen,
         exportProfiles,
         importProfiles,
+        settingsModalOpen,
+        openSettingsModal,
+        closeSettingsModal,
     } = useStore();
 
     // 主题状态
@@ -127,7 +131,20 @@ export default function Dashboard() {
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
                             <Settings className="w-5 h-5" />
                         </div>
-                        <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-50 w-48 p-2 shadow-lg">
+                        <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-50 w-52 p-2 shadow-lg">
+                            <li>
+                                <a
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        (document.activeElement as HTMLElement)?.blur();
+                                        openSettingsModal();
+                                    }}
+                                    className={isLoading ? 'disabled' : ''}
+                                >
+                                    <FolderOpen className="w-4 h-4" />
+                                    配置 RoxyBrowser 路径
+                                </a>
+                            </li>
                             <li>
                                 <a
                                     onClick={(e) => {
@@ -246,6 +263,9 @@ export default function Dashboard() {
 
             {/* 添加用户向导 */}
             {wizardOpen && <AddUserWizard />}
+
+            {/* 设置模态框 */}
+            <SettingsModal isOpen={settingsModalOpen} onClose={closeSettingsModal} />
 
             {/* 导入导出模态框 */}
             {modalType && (

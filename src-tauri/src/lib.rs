@@ -1,7 +1,7 @@
 mod commands;
 mod models;
 
-use commands::{process, profile};
+use commands::{process, profile, settings};
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{TrayIconBuilder, TrayIconEvent},
@@ -84,6 +84,13 @@ pub fn run() {
             // 导入导出
             profile::export_profiles,
             profile::import_profiles,
+            // 设置管理
+            settings::get_roxy_exe_path,
+            settings::set_roxy_exe_path,
+            settings::validate_roxy_exe_path,
+            settings::auto_detect_roxy_path,
+            settings::browse_for_exe,
+            settings::clear_roxy_exe_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -47,37 +47,34 @@ pub fn start_roxy() -> Result<(), String> {
 
     #[cfg(target_os = "windows")]
     {
-        // Windows: 尝试从常见路径启动
-        let paths = [
-            // 用户级安装路径 (实际路径)
-            &format!(r"{}\..\Local\Programs\RoxyBrowser\RoxyBrowser.exe", 
-                dirs::data_dir().unwrap().display()),
-            r"C:\Program Files\RoxyBrowser\RoxyBrowser.exe",
-            r"C:\Program Files (x86)\RoxyBrowser\RoxyBrowser.exe",
-        ];
+        use crate::commands::settings::{load_settings, get_enhanced_default_paths};
         
-        for path in &paths {
-            let path_buf = std::path::PathBuf::from(path);
-            if path_buf.exists() {
-                Command::new(&path_buf)
+        // 优先级1: 使用用户配置的自定义路径
+        if let Ok(settings) = load_settings() {
+            if let Some(custom_path) = settings.roxy_exe_path {
+                let path_buf = std::path::PathBuf::from(&custom_path);
+                if path_buf.exists() {
+                    Command::new(&path_buf)
+                        .spawn()
+                        .map_err(|e| format!("无法启动 RoxyBrowser: {}", e))?;
+                    return Ok(());
+                }
+            }
+        }
+        
+        // 优先级2: 回退到增强的默认路径检测
+        let default_paths = get_enhanced_default_paths();
+        for path in &default_paths {
+            if path.exists() {
+                Command::new(&path)
                     .spawn()
                     .map_err(|e| format!("无法启动 RoxyBrowser: {}", e))?;
                 return Ok(());
             }
         }
         
-        // 备用方案：使用 dirs crate 动态获取用户路径
-        if let Some(local_app_data) = dirs::data_local_dir() {
-            let user_path = local_app_data.join("Programs").join("RoxyBrowser").join("RoxyBrowser.exe");
-            if user_path.exists() {
-                Command::new(&user_path)
-                    .spawn()
-                    .map_err(|e| format!("无法启动 RoxyBrowser: {}", e))?;
-                return Ok(());
-            }
-        }
-        
-        return Err("未找到 RoxyBrowser 安装路径".to_string());
+        // 未找到任何有效路径
+        return Err("未找到 RoxyBrowser 安装路径。\n\n可能的原因：\n• RoxyBrowser 未安装在默认位置\n• 需要手动配置安装路径\n\n请在设置中手动指定可执行文件位置。".to_string());
     }
 
     #[cfg(target_os = "linux")]

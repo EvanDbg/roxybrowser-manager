@@ -26,6 +26,9 @@ interface AppState {
     wizardOpen: boolean;
     wizardStep: number;
 
+    // 设置模态框状态
+    settingsModalOpen: boolean;
+
     // Actions
     loadUsers: () => Promise<void>;
     refreshStatus: () => Promise<void>;
@@ -47,6 +50,10 @@ interface AppState {
 
     // 更新备注
     updateUserNote: (email: string, note: string) => Promise<void>;
+
+    // 设置模态框 Actions
+    openSettingsModal: () => void;
+    closeSettingsModal: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -58,6 +65,7 @@ export const useStore = create<AppState>((set, get) => ({
     error: null,
     wizardOpen: false,
     wizardStep: 0,
+    settingsModalOpen: false,
 
     // 加载用户列表
     loadUsers: async () => {
@@ -192,4 +200,8 @@ export const useStore = create<AppState>((set, get) => ({
             throw error;
         }
     },
+
+    // 设置模态框相关
+    openSettingsModal: () => set({ settingsModalOpen: true }),
+    closeSettingsModal: () => set({ settingsModalOpen: false }),
 }));
