@@ -1,6 +1,6 @@
 [package]
 name = "roxybrowser-manager"
-version = "1.1.1"
+version = "1.2.0"
 description = "RoxyBrowser 多账户管理与切换工具"
 authors = ["You"]
 license = "MIT"

@@ -1,9 +1,10 @@
-import { User, Play, Square, RefreshCw, Plus, Download, Upload, Settings, Sun, Moon, X, FolderOpen } from "lucide-react";
+import { User, Play, Square, RefreshCw, Plus, Download, Upload, Settings, Sun, Moon, FolderOpen } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "../stores/useStore";
 import UserCard from "./UserCard";
 import AddUserWizard from "./AddUserWizard";
 import SettingsModal from "./SettingsModal";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 export default function Dashboard() {
     const {
@@ -29,11 +30,6 @@ export default function Dashboard() {
         const saved = localStorage.getItem('theme');
         return (saved as 'light' | 'dark') || 'dark';
     });
-
-    // 导入导出模态框状态
-    const [modalType, setModalType] = useState<'export' | 'import' | null>(null);
-    const [pathValue, setPathValue] = useState("~/Desktop/roxy_manager_backup");
-    const inputRef = useRef<HTMLInputElement>(null);
 
     // 应用主题
     useEffect(() => {
@@ -65,42 +61,27 @@ export default function Dashboard() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [openWizard, refreshStatus]);
 
-    // 打开模态框
-    const openExportModal = () => {
-        setPathValue("~/Desktop/roxy_manager_backup");
-        setModalType('export');
-        setTimeout(() => inputRef.current?.focus(), 100);
-    };
-
-    const openImportModal = () => {
-        setPathValue("~/Desktop/roxy_manager_backup");
-        setModalType('import');
-        setTimeout(() => inputRef.current?.focus(), 100);
-    };
-
-    const closeModal = () => {
-        setModalType(null);
-    };
-
-    // 执行导出
-    const handleExport = async () => {
-        if (!pathValue.trim()) return;
+    // 导出配置（使用原生文件夹选择器）
+    const handleExportWithDialog = async () => {
         try {
-            const result = await exportProfiles(pathValue.trim());
-            closeModal();
-            alert(result);
+            const selectedPath = await invoke<string | null>("browse_for_folder", { title: "选择导出目录" });
+            if (selectedPath) {
+                const result = await exportProfiles(selectedPath);
+                alert(result);
+            }
         } catch (error) {
             alert(`导出失败: ${error}`);
         }
     };
 
-    // 执行导入
-    const handleImport = async () => {
-        if (!pathValue.trim()) return;
+    // 导入配置（使用原生文件夹选择器）
+    const handleImportWithDialog = async () => {
         try {
-            const result = await importProfiles(pathValue.trim());
-            closeModal();
-            alert(result);
+            const selectedPath = await invoke<string | null>("browse_for_folder", { title: "选择导入配置目录" });
+            if (selectedPath) {
+                const result = await importProfiles(selectedPath);
+                alert(result);
+            }
         } catch (error) {
             alert(`导入失败: ${error}`);
         }
@@ -150,7 +131,7 @@ export default function Dashboard() {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         (document.activeElement as HTMLElement)?.blur();
-                                        openExportModal();
+                                        handleExportWithDialog();
                                     }}
                                     className={isLoading || users.length === 0 ? 'disabled' : ''}
                                 >
@@ -163,7 +144,7 @@ export default function Dashboard() {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         (document.activeElement as HTMLElement)?.blur();
-                                        openImportModal();
+                                        handleImportWithDialog();
                                     }}
                                     className={isLoading ? 'disabled' : ''}
                                 >
@@ -267,54 +248,7 @@ export default function Dashboard() {
             {/* 设置模态框 */}
             <SettingsModal isOpen={settingsModalOpen} onClose={closeSettingsModal} />
 
-            {/* 导入导出模态框 */}
-            {modalType && (
-                <div className="modal modal-open">
-                    <div className="modal-box">
-                        <button
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                            onClick={closeModal}
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                        <h3 className="font-bold text-lg mb-4">
-                            {modalType === 'export' ? '📤 导出配置' : '📥 导入配置'}
-                        </h3>
-                        <p className="text-sm text-base-content/60 mb-3">
-                            {modalType === 'export'
-                                ? '请输入导出目录路径，配置将保存到该目录：'
-                                : '请输入要导入的配置目录路径：'}
-                        </p>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            className="input input-bordered w-full"
-                            value={pathValue}
-                            onChange={(e) => setPathValue(e.target.value)}
-                            placeholder="例如: ~/Desktop/roxy_manager_backup"
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    modalType === 'export' ? handleExport() : handleImport();
-                                }
-                                if (e.key === 'Escape') closeModal();
-                            }}
-                        />
-                        <div className="modal-action">
-                            <button className="btn btn-ghost" onClick={closeModal}>
-                                取消
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={modalType === 'export' ? handleExport : handleImport}
-                                disabled={!pathValue.trim() || isLoading}
-                            >
-                                {modalType === 'export' ? '导出' : '导入'}
-                            </button>
-                        </div>
-                    </div>
-                    <div className="modal-backdrop" onClick={closeModal}></div>
-                </div>
-            )}
+
         </div>
     );
 }

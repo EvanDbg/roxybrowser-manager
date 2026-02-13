@@ -90,6 +90,7 @@ pub fn run() {
             settings::validate_roxy_exe_path,
             settings::auto_detect_roxy_path,
             settings::browse_for_exe,
+            settings::browse_for_folder,
             settings::clear_roxy_exe_path,
         ])
         .run(tauri::generate_context!())

@@ -217,6 +217,27 @@ pub async fn browse_for_exe(app: tauri::AppHandle) -> Result<Option<String>, Str
     }
 }
 
+/// Tauri 命令: 使用文件对话框选择文件夹
+#[tauri::command]
+pub async fn browse_for_folder(app: tauri::AppHandle, title: String) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    
+    let folder_path = app.dialog()
+        .file()
+        .set_title(&title)
+        .blocking_pick_folder();
+    
+    if let Some(path) = folder_path {
+        if let Some(path_ref) = path.as_path() {
+            Ok(Some(path_ref.to_string_lossy().to_string()))
+        } else {
+            Err("无法获取文件夹路径".to_string())
+        }
+    } else {
+        Ok(None)
+    }
+}
+
 /// Tauri 命令: 清除配置的路径
 #[tauri::command]
 pub fn clear_roxy_exe_path() -> Result<(), String> {
