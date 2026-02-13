@@ -94,7 +94,7 @@ pub fn stop_roxy() -> Result<(), String> {
     sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
 
     let mut found = false;
-    for (pid, process) in sys.processes() {
+    for (_pid, process) in sys.processes() {
         let name = process.name().to_string_lossy();
         if name.contains(ROXY_PROCESS_NAME) {
             process.kill();
@@ -102,11 +102,33 @@ pub fn stop_roxy() -> Result<(), String> {
         }
     }
 
-    if found {
-        // 等待进程完全退出
-        std::thread::sleep(std::time::Duration::from_millis(500));
-        Ok(())
-    } else {
-        Ok(()) // 如果没有运行的进程，也返回成功
+    if !found {
+        return Ok(()); // 没有运行的进程，直接成功
+    }
+
+    // 轮询等待进程完全退出
+    let poll_interval = std::time::Duration::from_millis(100);
+    let max_wait = std::time::Duration::from_secs(10);
+    let start = std::time::Instant::now();
+
+    loop {
+        std::thread::sleep(poll_interval);
+
+        let mut sys = System::new();
+        sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
+
+        let still_running = sys.processes().values().any(|p| {
+            p.name().to_string_lossy().contains(ROXY_PROCESS_NAME)
+        });
+
+        if !still_running {
+            return Ok(());
+        }
+
+        if start.elapsed() >= max_wait {
+            return Err(
+                "RoxyBrowser 进程未能在 10 秒内退出，请手动关闭后重试".to_string()
+            );
+        }
     }
 }

@@ -248,7 +248,6 @@ pub fn switch_user(email: String) -> Result<(), String> {
     
     // 停止 RoxyBrowser
     super::process::stop_roxy()?;
-    std::thread::sleep(std::time::Duration::from_millis(500));
     
     // 保存当前用户数据
     if let Some(ref current) = config.current_user {
@@ -319,7 +318,6 @@ pub fn prepare_for_new_user() -> Result<(), String> {
     
     // 停止 RoxyBrowser
     super::process::stop_roxy()?;
-    std::thread::sleep(std::time::Duration::from_millis(500));
     
     // 保存当前用户数据
     if let Some(ref current) = config.current_user {
@@ -350,7 +348,6 @@ pub fn prepare_for_new_user() -> Result<(), String> {
 pub fn finalize_new_user() -> Result<UserProfile, String> {
     // 停止 RoxyBrowser
     super::process::stop_roxy()?;
-    std::thread::sleep(std::time::Duration::from_millis(500));
     
     // 从 RoxyBrowser 数据中读取新用户邮箱
     let email = read_current_email_from_roxy()
