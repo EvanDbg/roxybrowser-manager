@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, FolderOpen, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle, FolderOpen, Search, Trash2, X, XCircle } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface SettingsModalProps {
@@ -8,12 +8,11 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-    const [currentPath, setCurrentPath] = useState<string>("");
+    const [currentPath, setCurrentPath] = useState("");
     const [isValid, setIsValid] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string>("");
+    const [error, setError] = useState("");
 
-    // 加载当前配置的路径
     useEffect(() => {
         if (isOpen) {
             loadCurrentPath();
@@ -60,7 +59,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 await validatePath(selectedPath);
             }
         } catch (err) {
-            setError(err as string);
+            setError(String(err));
         } finally {
             setIsLoading(false);
         }
@@ -78,7 +77,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 setError("未检测到 RoxyBrowser 安装路径，请手动选择");
             }
         } catch (err) {
-            setError(err as string);
+            setError(String(err));
         } finally {
             setIsLoading(false);
         }
@@ -92,12 +91,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     const handleSave = async () => {
         if (!currentPath.trim()) {
-            // 清除配置
             try {
                 await invoke("clear_roxy_exe_path");
                 onClose();
             } catch (err) {
-                setError(err as string);
+                setError(String(err));
             }
             return;
         }
@@ -113,13 +111,15 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             await invoke("set_roxy_exe_path", { path: currentPath });
             onClose();
         } catch (err) {
-            setError(err as string);
+            setError(String(err));
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {
+        return null;
+    }
 
     return (
         <div className="modal modal-open">
@@ -134,7 +134,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 <h3 className="font-bold text-lg mb-4">⚙️ RoxyBrowser 路径配置</h3>
 
-                {/* 当前路径显示 */}
                 <div className="mb-4">
                     <label className="label">
                         <span className="label-text">当前路径</span>
@@ -160,21 +159,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                 </div>
 
-                {/* 操作按钮 */}
-                <div className="flex gap-2 mb-4">
-                    <button
-                        className="btn btn-primary gap-2"
-                        onClick={handleBrowse}
-                        disabled={isLoading}
-                    >
+                <div className="flex gap-2 mb-4 flex-wrap">
+                    <button className="btn btn-primary gap-2" onClick={handleBrowse} disabled={isLoading}>
                         <FolderOpen className="w-4 h-4" />
                         浏览...
                     </button>
-                    <button
-                        className="btn btn-secondary gap-2"
-                        onClick={handleAutoDetect}
-                        disabled={isLoading}
-                    >
+                    <button className="btn btn-secondary gap-2" onClick={handleAutoDetect} disabled={isLoading}>
                         {isLoading ? (
                             <span className="loading loading-spinner loading-sm"></span>
                         ) : (
@@ -192,32 +182,25 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </button>
                 </div>
 
-                {/* 错误提示 */}
                 {error && (
                     <div className="alert alert-error mb-4">
                         <span>{error}</span>
                     </div>
                 )}
 
-                {/* 提示信息 */}
                 <div className="alert alert-info mb-4">
                     <div className="text-sm">
                         <p className="font-semibold mb-1">💡 使用说明：</p>
                         <ul className="list-disc list-inside space-y-1">
-                            <li>点击"浏览"选择 RoxyBrowser.exe 文件</li>
-                            <li>点击"自动检测"尝试自动查找安装路径</li>
-                            <li>如果不配置，将使用默认的自动检测逻辑</li>
+                            <li>点击“浏览”选择 RoxyBrowser.exe 文件</li>
+                            <li>点击“自动检测”尝试自动查找安装路径</li>
+                            <li>如果不配置，将继续使用默认自动检测逻辑</li>
                         </ul>
                     </div>
                 </div>
 
-                {/* 底部按钮 */}
                 <div className="modal-action">
-                    <button
-                        className="btn btn-ghost"
-                        onClick={onClose}
-                        disabled={isLoading}
-                    >
+                    <button className="btn btn-ghost" onClick={onClose} disabled={isLoading}>
                         取消
                     </button>
                     <button

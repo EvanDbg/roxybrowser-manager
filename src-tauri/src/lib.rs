@@ -1,7 +1,7 @@
 mod commands;
 mod models;
 
-use commands::{process, profile, settings};
+use commands::{process, profile, settings, sync};
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{TrayIconBuilder, TrayIconEvent},
@@ -96,9 +96,19 @@ pub fn run() {
             settings::set_roxy_exe_path,
             settings::validate_roxy_exe_path,
             settings::auto_detect_roxy_path,
+            settings::get_webdav_settings,
+            settings::save_webdav_settings,
+            settings::get_sync_status,
             settings::browse_for_exe,
             settings::browse_for_folder,
             settings::clear_roxy_exe_path,
+            // WebDAV 同步
+            sync::test_webdav_connection,
+            sync::sync_to_webdav,
+            sync::list_webdav_snapshots,
+            sync::pull_latest_from_webdav,
+            sync::restore_webdav_snapshot,
+            sync::delete_webdav_snapshot,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

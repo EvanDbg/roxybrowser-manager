@@ -3,17 +3,16 @@ import Dashboard from "./components/Dashboard";
 import { useStore } from "./stores/useStore";
 
 function App() {
-    const { loadUsers, refreshStatus } = useStore();
+    const { loadUsers, refreshStatus, loadSyncStatus } = useStore();
 
     useEffect(() => {
-        // 初始化加载用户列表和状态
         loadUsers();
         refreshStatus();
+        loadSyncStatus();
 
-        // 每 5 秒刷新一次状态
         const interval = setInterval(refreshStatus, 5000);
         return () => clearInterval(interval);
-    }, [loadUsers, refreshStatus]);
+    }, [loadUsers, refreshStatus, loadSyncStatus]);
 
     return (
         <div className="min-h-screen bg-base-200">

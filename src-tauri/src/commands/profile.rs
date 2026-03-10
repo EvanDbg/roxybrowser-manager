@@ -28,17 +28,17 @@ fn get_roxy_data_dir() -> PathBuf {
 }
 
 /// 应用配置目录
-fn get_app_config_dir() -> PathBuf {
+pub(crate) fn get_app_config_dir() -> PathBuf {
     dirs::home_dir().unwrap().join(".roxy_manager")
 }
 
 /// 用户配置文件备份目录
-fn get_profiles_dir() -> PathBuf {
+pub(crate) fn get_profiles_dir() -> PathBuf {
     get_app_config_dir().join("profiles")
 }
 
 /// 应用配置文件路径
-fn get_config_path() -> PathBuf {
+pub(crate) fn get_config_path() -> PathBuf {
     get_app_config_dir().join("config.json")
 }
 
@@ -52,7 +52,7 @@ const BACKUP_ITEMS: &[&str] = &[
 ];
 
 /// 加载应用配置
-fn load_config() -> AppConfig {
+pub(crate) fn load_config() -> AppConfig {
     let config_path = get_config_path();
     if config_path.exists() {
         let content = fs::read_to_string(&config_path).unwrap_or_default();
@@ -79,7 +79,7 @@ fn save_config(config: &AppConfig) -> Result<(), String> {
 }
 
 /// 备份 RoxyBrowser 数据到指定用户目录
-fn backup_roxy_data(email: &str) -> Result<(), String> {
+pub(crate) fn backup_roxy_data(email: &str) -> Result<(), String> {
     let roxy_dir = get_roxy_data_dir();
     let profile_dir = get_profiles_dir().join(email);
     
@@ -101,6 +101,17 @@ fn backup_roxy_data(email: &str) -> Result<(), String> {
     }
     
     Ok(())
+}
+
+pub(crate) fn flush_current_user_backup() -> Result<Option<String>, String> {
+    let config = load_config();
+
+    if let Some(current) = config.current_user {
+        backup_roxy_data(&current)?;
+        Ok(Some(current))
+    } else {
+        Ok(None)
+    }
 }
 
 /// 恢复用户数据到 RoxyBrowser 目录
@@ -140,7 +151,7 @@ fn restore_roxy_data(email: &str) -> Result<(), String> {
 }
 
 /// 递归复制目录
-fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> Result<(), String> {
+pub(crate) fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> Result<(), String> {
     fs::create_dir_all(dst)
         .map_err(|e| format!("无法创建目录 {:?}: {}", dst, e))?;
     
